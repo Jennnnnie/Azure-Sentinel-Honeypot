@@ -89,6 +89,16 @@ Specific error message: *Invoke-WebRequest : The remote server returned an error
 ![Heartbeat Success](img/heartbeat-logs.png)
 *Image 11: Verifying the data pipeline remains healthy.*
 
+**Issue 3: Log Ingestion Silence & Path Mismatch**
+The script was running properly and the logs were populating on the VM, but the data was not appearing in the Log Analytics Workspace. After investigating, it turns out that the AMA was being configured to watch a file path that was incorrectly mapped to the VM desktop profile.
+
+**Solution:**
+1. **DCR Update:** I had to manually reconfigure the DCR to include a "Custom Text Logs" data source specificially to the correct target path.
+2. **KQL Transformation:** Verified that the KQL transformation logic was correctly parsing the `RawData` into the structured columns within the DCR's JSON configuration
+
+![Data Collection Rule Configuration](img/azure-log-dcr-datasources.png)
+*Image 12: Manually mapping custom log path and transformation logic in Azure Portal*
+
 ---
 
 ## 📊 Results & Visualization
