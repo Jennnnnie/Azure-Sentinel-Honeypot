@@ -100,7 +100,7 @@ The script was running properly and the logs were populating on the VM, but the 
 *Image 12: Manually mapping custom log path and transformation logic in Azure Portal*
 
 **Issue4: Transformation Logic & Agent Latency**
-Even after the DCR was correctly mapped to the file path, specific columns in Azure (latitude, longitude, username) all came up empty. "RawData" was recevied but the KQL was not successfully curring the data in the defined schema. 
+Even after the DCR was correctly mapped to the file path, specific columns in Azure (latitude, longitude, username) all came up empty. `RawData` was recevied but the KQL was not successfully curring the data in the defined schema. 
 
 **Solution:**
 1. **Transformation Refinement:** I updated the DCR's KQL Transformation code from the default `source` to a specific `parse` logic. 
@@ -108,6 +108,29 @@ Even after the DCR was correctly mapped to the file path, specific columns in Az
 
 ![Nanual Re-initialization of AMA](img/troubleshooting-ama-agent-restart.png)
 *Image 13: Powershell force-stop on MonAgent/AMA processes.*
+
+**Issue 5: Schema Mismatch & Data Type Conflicts**
+Latitude and longitude columns were still appearing blank in the tablem even though the `RawData` was clearly visible in the sample json file. 
+
+**Solution:**
+1. **Rgex Refactoring:** I moved from a rigid `parse` operator to a more flexible `extract` operator using Regular Expressions (Regex).
+2. **Type Casting:** I also implemented the `toreal()` function within the KQL transformation code to make sure the coordinate strings are turned into decimal numbers.
+
+![Incorrect Transformation](img/custom-data-source-incorrect-transformation-code.png)
+*Image 14: Failed ingestion due to rigid parsing logic.*
+![Correct Transformation](img/custom-data-source-correct-transformation-code.png)
+*Image 15: Successful ingestion using Regex extraction and Type Casting.*
+
+**Issue 5: File Encoding & Permissions**
+It seemed after Issue 5's fix, the AMA stopped reading the log file entirely. I believe the file was saved in UTF-16 encoding, so I decided to move folder directories. 
+
+**Solution:**
+1. **Directory Migration:** I moved the log file out of the system-protected C:\ProgramData folder and into a custom dedicated directory (C:\custom_logs) to simplify permissions.
+2. **Encoding Force:** I used a PowerShell "Nuke and Start Fresh" approach—restarting the VM to break the file lock, deleting the old log, and forcing the script to generate a new file in UTF-8 encoding.
+3. **Service Kickstart:** Restarted the WindowsAzureGuestAgent and AMA services to force an immediate re-scan of the new directory.
+
+![Moving Directory Folder](img/new-folder-for-logs.png)
+*Image 16: Moved from C:\ProgramData folder to C:\custom_logs*
 
 ---
 
