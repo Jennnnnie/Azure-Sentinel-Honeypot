@@ -99,6 +99,16 @@ The script was running properly and the logs were populating on the VM, but the 
 ![Data Collection Rule Configuration](img/azure-log-dcr-datasources.png)
 *Image 12: Manually mapping custom log path and transformation logic in Azure Portal*
 
+**Issue4: Transformation Logic & Agent Latency**
+Even after the DCR was correctly mapped to the file path, specific columns in Azure (latitude, longitude, username) all came up empty. "RawData" was recevied but the KQL was not successfully curring the data in the defined schema. 
+
+**Solution:**
+1. **Transformation Refinement:** I updated the DCR's KQL Transformation code from the default `source` to a specific `parse` logic. 
+2. **Manual Agent Re-initialization:** Because the Azure Monitor Agent (AMA) runs as a hidden set of processes (MonAgentCore.exe), I used PowerShell to force-stop all MonAgent processes.
+
+![Nanual Re-initialization of AMA](img/troubleshooting-ama-agent-restart.png)
+*Image 13: Powershell force-stop on MonAgent/AMA processes.*
+
 ---
 
 ## 📊 Results & Visualization
