@@ -107,6 +107,7 @@ Even after the DCR was correctly mapped to the file path, specific columns in Az
 2. **Manual Agent Re-initialization:** Because the Azure Monitor Agent (AMA) runs as a hidden set of processes (MonAgentCore.exe), I used PowerShell to force-stop all MonAgent processes.
 
 ![Nanual Re-initialization of AMA](img/troubleshooting-ama-agent-restart.png)
+
 *Image 13: Powershell force-stop on MonAgent/AMA processes.*
 
 **Issue 5: Schema Mismatch & Data Type Conflicts**
@@ -135,4 +136,32 @@ It seemed after Issue 5's fix, the AMA stopped reading the log file entirely. I 
 ---
 
 ## 📊 Results & Visualization
-*Coming soon! Final global attack map will be updated once the API credits refresh.*
+**Data Ingestion & Parsing Verification**
+Before visualizing the data, I verified that the Azure Monitor Agent (AMA) was correctly ingesting the custom security logs. By utilizing KQL and custom Regex transformations, raw log strings were successfully parsed into structured data fields, including geographic coordinates, usernames, and source IP addresses.
+
+![Successful Ingested Data](img/ingested-logs-verification.png)
+*Image 17: Successful ingestion and parsing of raw security logs into the custom FAILED_RDP_WITH_GEO_CL table.*
+
+**Global Attack Visualization**
+With the data correctly structured, I developed a custom Microsoft Sentinel Workbook to provide real-time geographic visualization of the attack surface. The node on the map represents a unique brute-force attempt, scaled by the frequency of events from that specific geographic region.
+
+![Hacker Map Visual](img/sentinel-hacker-map-final.png)
+*Image 18: The final "Hacker Map" displaying live RDP brute-force attempts from global actors.*
+
+---
+
+## 🧠 Lessons Learned
+During the implementation of this SIEM lab, several technical challenges were encountered that required deep-diving into the AMA architecture and KQL code.
+
+1. Navigating Legacy vs. Modern Azure Architecture
+- A significant portion of the project involved researching older tutorial documentation with the modern Azure interface.
+- Specifically, the transition from the legacy Log Analytics Agent to the AMA required manually configuring DCRs.
+
+2. Schema Matching & Data Transformation
+- One of the biggest technical hurdles was ensuring that the raw text logs from the VM matched the schema of the custom Log Analytics table.
+- The fix was that I had to implement a custom KQL Transformation Code within the Data Collection Rule by using the extract() function and Regex to parse unorganized string data.
+
+3. Overcoming Data Latency & Ingestion Delays
+- Initially, the SIEM appeared to show "No Data." resulting in requiring a significant amount of troubleshooting.
+- Especially the communication between the VM and the Log Analytics Workspace.
+- Patience and consistent log-checking using `SecurityEvent` were essential to verify that the telemetry pipeline was fully operational.
